@@ -1,34 +1,76 @@
-// Package validate provides simple syntactic validators for common
-// user-input formats.
+// Package validate надає прості синтаксичні валідатори для поширених
+// форматів користувацького вводу.
 //
-// Homework — Task 2 (Lesson 6: File I/O, JSON and Testing):
-// Implement ValidateEmail and/or ValidatePhone below (your mentor may
-// ask for just one) and extend the test tables in validate_test.go to
-// at least 8 cases each, including edge cases.
+// Домашнє завдання — Завдання 2 (Урок 6: Робота з файлами, JSON та тестування):
+// Реалізуйте ValidateEmail та/або ValidatePhone нижче (ментор може
+// попросити лише одну з них) і розширте таблиці тестів у validate_test.go
+// щонайменше до 8 випадків кожна, включно з крайніми випадками.
 package validate
 
-// ValidateEmail reports whether s is a syntactically valid email address.
+import (
+	"strings"
+	"unicode"
+)
+
+// ValidateEmail повідомляє, чи є s синтаксично коректною email-адресою.
 //
-// TODO: implement this function. At minimum it should:
-//   - reject the empty string,
-//   - require exactly one "@" with a non-empty local part and domain part,
-//   - reject values containing whitespace.
+// TODO: реалізуйте цю функцію. Щонайменше вона має:
+//   - відхиляти порожній рядок,
+//   - вимагати рівно один "@" з непорожніми локальною частиною та доменом,
+//   - відхиляти значення, що містять пробільні символи.
 //
-// Document any additional decisions you make (e.g. how you handle a
-// trailing dot, consecutive dots, or unicode characters) in a comment
-// here, and add matching test cases in validate_test.go.
+// Задокументуйте тут у коментарі будь-які додаткові рішення (наприклад,
+// як обробляється крапка в кінці, послідовні крапки чи unicode-символи)
+// і додайте відповідні тестові випадки у validate_test.go.
 func ValidateEmail(s string) bool {
-	// TODO: implement me
-	return false
+	if s == "" {
+		return false
+	}
+	if strings.IndexFunc(s, unicode.IsSpace) >= 0 {
+		return false
+	}
+	if len(s) > 40 {
+		return false
+	}
+	atCount := strings.Count(s, "@")
+	if atCount != 1 {
+		return false
+	}
+	parts := strings.Split(s, "@")
+
+	if len(parts[0]) == 0 || len(parts[1]) == 0 {
+		return false
+	}
+	if strings.HasSuffix(parts[1], ".") {
+		return false
+	}
+	return true
 }
 
-// ValidatePhone reports whether s is a syntactically valid phone number.
+// ValidatePhone повідомляє, чи є s синтаксично коректним номером телефону.
 //
-// TODO: implement this function. Decide which format(s) you accept
-// (e.g. "+380501234567", "050-123-4567") and document your decision
-// here. At minimum it should reject the empty string and any value
-// containing letters.
+// TODO: реалізуйте цю функцію. Вирішіть, які формати ви приймаєте
+// (наприклад, "+380501234567", "050-123-4567"), і задокументуйте
+// це рішення тут. Щонайменше вона має відхиляти порожній рядок і будь-яке
+// значення, що містить літери.
+//
+// Прийняте рішення: допустимі лише ASCII-цифри, роздільники "-", "(", ")",
+// "." та необов'язковий "+" на самому початку. Пробіли відхиляються.
+// Кількість цифр має бути від 10 до 15 (на кшталт E.164).
 func ValidatePhone(s string) bool {
-	// TODO: implement me
-	return false
+	digits := 0
+	for i, r := range s {
+		switch {
+		case r >= '0' && r <= '9':
+			digits++
+		case r == '+':
+			if i != 0 {
+				return false
+			}
+		case r == '-', r == '(', r == ')', r == '.':
+		default:
+			return false
+		}
+	}
+	return digits >= 10 && digits <= 15
 }

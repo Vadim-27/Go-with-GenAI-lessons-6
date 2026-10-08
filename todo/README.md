@@ -18,3 +18,26 @@ Run it locally with:
 go test -v ./todo/...
 go test -cover ./todo/...
 ```
+
+
+# Завдання 1 — збереження списку справ (JSON)
+
+Реалізуйте `SaveTodos` та `LoadTodos` у файлі `todo.go`.
+
+**Вимоги**
+
+- `SaveTodos(path string, todos []Todo) error` записує список у `path`
+  у форматі JSON, створюючи файл або перезаписуючи наявний.
+- `LoadTodos(path string) ([]Todo, error)` читає та розбирає файл за
+  шляхом `path`, повертаючи зрозумілу помилку, якщо файлу немає або JSON
+  некоректний.
+- Щонайменше **80% покриття операторів** для цього пакета
+  (`go test -cover ./todo/...`).
+
+**Не редагуйте `todo_test.go`** — це специфікація цього завдання.
+Запускайте його локально так:
+
+```bash
+go test -v ./todo/...
+go test -cover ./todo/...
+```

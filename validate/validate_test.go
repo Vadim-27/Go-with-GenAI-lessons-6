@@ -7,7 +7,10 @@
 // the others. Run `go test -v ./validate/...` and read every FAIL line.
 package validate
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 const minCases = 8
 
@@ -24,8 +27,16 @@ var emailCases = []struct {
 	{"valid simple", "student@softserve.academy", true},
 	{"missing at sign", "student-softserve.academy", false},
 	{"empty string", "", false},
-
-	// TODO: add at least 5 more cases here.
+	{"valid with subdomain", "a.b@mail.example.com", true},
+	{"valid unicode local part", "студент@example.com", true},
+	{"space inside", "stud ent@softserve.academy", false},
+	{"tab inside", "stud\tent@softserve.academy", false},
+	{"two at signs", "a@b@softserve.academy", false},
+	{"missing local part", "@softserve.academy", false},
+	{"missing domain", "student@", false},
+	{"trailing dot in domain", "student@softserve.", false},
+	{"exactly 40 chars", strings.Repeat("a", 28) + "@example.com", true},
+	{"41 chars is too long", strings.Repeat("a", 29) + "@example.com", false},
 }
 
 func TestValidateEmail(t *testing.T) {
@@ -62,8 +73,15 @@ var phoneCases = []struct {
 	{"valid with plus", "+380501234567", true},
 	{"contains letters", "050-abc-4567", false},
 	{"empty string", "", false},
-
-	// TODO: add at least 5 more cases here.
+	{"valid local with dashes", "050-123-4567", true},
+	{"valid with parentheses", "(050)1234567", true},
+	{"too short", "+38050", false},
+	{"too long (16 digits)", "+3805012345678901", false},
+	{"space inside", "050 123 4567", false},
+	{"plus in the middle", "050+1234567", false},
+	{"uppercase letters", "050-ABC-4567", false},
+	{"only separators", "----------", false},
+	{"arabic-indic digits", "٠٥٠١٢٣٤٥٦٧", false},
 }
 
 func TestValidatePhone(t *testing.T) {
