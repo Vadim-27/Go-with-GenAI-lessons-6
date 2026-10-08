@@ -14,35 +14,57 @@ import (
 
 // ValidateEmail повідомляє, чи є s синтаксично коректною email-адресою.
 //
-// TODO: реалізуйте цю функцію. Щонайменше вона має:
-//   - відхиляти порожній рядок,
-//   - вимагати рівно один "@" з непорожніми локальною частиною та доменом,
-//   - відхиляти значення, що містять пробільні символи.
-//
-// Задокументуйте тут у коментарі будь-які додаткові рішення (наприклад,
-// як обробляється крапка в кінці, послідовні крапки чи unicode-символи)
-// і додайте відповідні тестові випадки у validate_test.go.
+// Прийняті рішення:
+//   - порожній рядок, пробільні символи та довжина понад 40 байтів відхиляються;
+//   - має бути рівно один "@" з непорожніми локальною частиною та доменом;
+//   - локальна частина: літери (включно з unicode), цифри та символи
+//     "._+-%"; не може починатися чи закінчуватися крапкою і містити ".."
+//   - домен: лише ASCII-літери, цифри та "-"; мінімум дві мітки через крапку
+//     (тобто потрібен TLD); мітка не буває порожньою (це відсікає крапку
+//     на початку, в кінці та послідовні крапки) і не починається/не
+//     закінчується дефісом.
 func ValidateEmail(s string) bool {
-	if s == "" {
+	if s == "" || len(s) > 40 {
 		return false
 	}
 	if strings.IndexFunc(s, unicode.IsSpace) >= 0 {
 		return false
 	}
-	if len(s) > 40 {
+	if strings.Count(s, "@") != 1 {
 		return false
 	}
-	atCount := strings.Count(s, "@")
-	if atCount != 1 {
-		return false
-	}
-	parts := strings.Split(s, "@")
+	local, domain, _ := strings.Cut(s, "@")
+	return validEmailLocal(local) && validEmailDomain(domain)
+}
 
-	if len(parts[0]) == 0 || len(parts[1]) == 0 {
+func validEmailLocal(local string) bool {
+	if local == "" || strings.HasPrefix(local, ".") || strings.HasSuffix(local, ".") ||
+		strings.Contains(local, "..") {
 		return false
 	}
-	if strings.HasSuffix(parts[1], ".") {
+	for _, r := range local {
+		if !unicode.IsLetter(r) && !unicode.IsDigit(r) && !strings.ContainsRune("._+-%", r) {
+			return false
+		}
+	}
+	return true
+}
+
+func validEmailDomain(domain string) bool {
+	labels := strings.Split(domain, ".")
+	if len(labels) < 2 {
 		return false
+	}
+	for _, label := range labels {
+		if label == "" || label[0] == '-' || label[len(label)-1] == '-' {
+			return false
+		}
+		for _, r := range label {
+			isAlnum := r < unicode.MaxASCII && (unicode.IsLetter(r) || unicode.IsDigit(r))
+			if !isAlnum && r != '-' {
+				return false
+			}
+		}
 	}
 	return true
 }

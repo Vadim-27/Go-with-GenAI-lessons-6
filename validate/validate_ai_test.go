@@ -43,10 +43,12 @@ func TestValidateEmail_AIGenerated(t *testing.T) {
 		{"invalid character in local", "us(er@example.com", false},
 		{"invalid character in domain", "user@exa_mple.com", false},
 		{"only at sign", "@", false},
-		{"unicode local part", "юзер@example.com", false},
+		// Розбіжність зі специфікацією проєкту: unicode у локальній частині дозволено.
+		{"unicode local part", "юзер@example.com", true},
 		{"long local part over 64", strings.Repeat("a", 65) + "@example.com", false},
 		{"long address over 254", strings.Repeat("a", 64) + "@" + strings.Repeat("b", 250) + ".com", false},
-		{"max valid local part 64", strings.Repeat("a", 64) + "@example.com", true},
+		// Розбіжність зі специфікацією проєкту: загальний ліміт адреси — 40, а не RFC-шні 64/254.
+		{"max valid local part 64", strings.Repeat("a", 64) + "@example.com", false},
 	}
 
 	for _, tt := range tests {
